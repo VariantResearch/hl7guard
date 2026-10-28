@@ -1,8 +1,19 @@
-HL7Guard - Proprietary (pre-release)
+HL7Guard Free Edition
 
 Copyright (c) 2026 VariantResearch. All rights reserved.
 
-Pre-release evaluation copy. No redistribution, resale, or public
-distribution until a public license is issued with a numbered release.
-A public free tier and paid Solo / Team licenses are planned; see
-README.md.
+You may install and use this software free of charge, for
+personal or commercial purposes, including in automated
+pipelines.
+
+You may not redistribute, resell, sublicense, or repackage this
+software, in whole or in part, and you may not remove or alter
+this notice.
+
+This software is provided "as is", without warranty of any kind,
+express or implied. In no event shall the copyright holder be
+liable for any claim, damages, or other liability arising from
+the use of this software.
+
+The full edition of HL7Guard is a separate product under its
+own license. See https://hl7guard.variantresearchgroup.com
