@@ -24,7 +24,24 @@ third-party dependencies.
 
 ## Install
 
+You need Python 3.10 or newer. Install straight from GitHub:
+
+    pip install "git+https://github.com/VariantResearch/hl7guard.git"
+
+Or download the source first (the green Code button on the
+GitHub page, then Download ZIP), unzip it, open a terminal in
+the unzipped folder, and run:
+
     pip install .
+
+Either way, check the install worked:
+
+    hl7guard --version
+
+If the `hl7guard` command is not found on your machine, run it
+through Python instead, which works the same:
+
+    python -m hl7guard --version
 
 ## Usage
 
