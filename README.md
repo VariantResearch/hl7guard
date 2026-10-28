@@ -1,24 +1,23 @@
 # HL7Guard Free
 
 HL7v2 validation and de-identification for the command line.
-Not another message viewer: a checker you can run in CI, with
-exit codes a pipeline can gate on.
+Not another message viewer: a checker you can script and run
+in CI, with exit codes a pipeline can gate on.
 
-This repository is the **free edition**, complete as far as it
-goes:
+## What the free edition does
 
-- `hl7guard validate <file>` validates the one message in a file
-  against the built-in checks (structure plus the built-in ADT
-  and ORU profiles with `--builtin`).
-- `hl7guard anonymize <file>` de-identifies the one message in a
-  file. Replacements are seeded and consistent: the same patient
-  maps to the same fake patient for a given seed, and direct
-  identifiers (names, IDs, dates of birth, addresses, phone
-  numbers, and the rest of the covered fields) are replaced.
+- `hl7guard validate <file>` validates the one HL7v2 message in
+  a file: message structure, plus the built-in ADT and ORU
+  profiles with `--builtin`.
+- `hl7guard anonymize <file>` de-identifies the one message in
+  a file. Names, patient IDs, dates of birth, addresses, phone
+  numbers, and the other covered identifier fields are replaced.
+  Replacements are seeded and consistent: with the same seed,
+  the same patient maps to the same fake patient.
 
-Exit codes are the contract: 0 clean, 1 validation errors found,
-2 file or usage error. Input with no HL7 message in it exits 2,
-never a clean pass.
+Exit codes: 0 clean, 1 validation errors found, 2 file or usage
+error. A file with no HL7 message in it exits 2, never a clean
+pass.
 
 Everything runs locally and offline. Python 3.10 or newer, no
 third-party dependencies.
@@ -48,6 +47,6 @@ https://hl7guard.variantresearchgroup.com
 
 Support: hl7guard-support@variantresearchgroup.com
 
-Plain notes: the anonymizer is a de-identification aid, not a
-HIPAA certification, so review de-identified output before
+One plain note: the anonymizer is a de-identification aid, not
+a HIPAA certification, so review de-identified output before
 sharing it.
