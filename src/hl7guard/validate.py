@@ -75,6 +75,38 @@ BUILTIN_PROFILES: dict[str, dict] = {
                                 "PV1-2": "patient class"},
         }
     },
+    "adt_a02": {
+        "ADT^A02": {
+            "required_segments": ["MSH", "EVN", "PID", "PV1"],
+            "required_fields": {"PID-3": "patient identifier", "PID-5": "patient name",
+                                "PV1-2": "patient class",
+                                "PV1-3": "assigned patient location"},
+        }
+    },
+    "adt_a03": {
+        "ADT^A03": {
+            "required_segments": ["MSH", "EVN", "PID", "PV1"],
+            "required_fields": {"PID-3": "patient identifier", "PID-5": "patient name",
+                                "PV1-2": "patient class",
+                                "PV1-45": "discharge date/time"},
+        }
+    },
+    "adt_a08": {
+        "ADT^A08": {
+            "required_segments": ["MSH", "EVN", "PID", "PV1"],
+            "required_fields": {"PID-3": "patient identifier", "PID-5": "patient name",
+                                "PV1-2": "patient class"},
+        }
+    },
+    "orm_o01": {
+        "ORM^O01": {
+            "required_segments": ["MSH", "PID", "ORC", "OBR"],
+            "required_fields": {"PID-3": "patient identifier", "PID-5": "patient name",
+                                "ORC-1": "order control",
+                                "ORC-2": "placer order number",
+                                "OBR-4": "universal service ID"},
+        }
+    },
     "oru_r01": {
         "ORU^R01": {
             "required_segments": ["MSH", "PID", "OBR", "OBX"],
