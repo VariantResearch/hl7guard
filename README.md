@@ -14,6 +14,10 @@ in CI, with exit codes a pipeline can gate on.
   numbers, and the other covered identifier fields are replaced.
   Replacements are seeded and consistent: with the same seed,
   the same patient maps to the same fake patient.
+- `hl7guard-gui` opens a desktop window with the same two
+  operations, plus a viewer/editor: open a file and read each
+  message as labelled segments and fields (PID-5 shown as
+  Patient Name, and so on), make a minor edit, and save it.
 
 Exit codes: 0 clean, 1 validation errors found, 2 file or usage
 error. A file with no HL7 message in it exits 2, never a clean
@@ -56,10 +60,10 @@ made up; no real patient data) to try it on.
 
 Batch and folder mode, custom JSON profiles, field-by-field
 capture diff matched by message control ID, labelled edge-case
-message generation, a capture census, a residual-identifier
-verify pass, live MLLP send and listen testing, a desktop GUI,
-and JSON and HTML reports are the full edition, sold as a
-one-time license (Solo and Team) at
+message generation, a capture census, profile drafting, watch
+mode, a residual-identifier verify pass, live MLLP send and
+listen testing, and JSON and HTML reports are the full edition,
+sold as a one-time license (Solo and Team) at
 https://hl7guard.variantresearchgroup.com
 
 Support: hl7guard-support@variantresearchgroup.com

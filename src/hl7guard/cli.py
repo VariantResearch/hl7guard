@@ -2,16 +2,19 @@
 
 The free edition, complete: validate one HL7v2 message at a time
 against the built-in checks, and de-identify one message at a time
-with seeded, consistent replacements. Exit codes are the contract:
+with seeded, consistent replacements. A desktop window
+(hl7guard-gui) offers the same two operations plus the
+viewer/editor. Exit codes are the contract:
 
     0  clean / done
     1  validation findings (errors in the message)
     2  file or usage error (including "not HL7 at all")
 
 Batch and folder mode, custom profiles, capture diff, edge-case
-generation, the capture census, residual-identifier verify, MLLP
-send/listen, the desktop GUI, and JSON/HTML reports are the full
-edition: https://hl7guard.variantresearchgroup.com
+generation, the capture census, profile drafting, watch mode,
+residual-identifier verify, MLLP send/listen, and JSON/HTML
+reports are the full edition:
+https://hl7guard.variantresearchgroup.com
 """
 from __future__ import annotations
 

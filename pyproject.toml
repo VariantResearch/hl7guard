@@ -16,6 +16,7 @@ classifiers = [
 
 [project.scripts]
 hl7guard = "hl7guard.cli:main"
+hl7guard-gui = "hl7guard.gui:main"
 
 [project.urls]
 Homepage = "https://hl7guard.variantresearchgroup.com"
