@@ -85,8 +85,13 @@ class Anonymizer:
         # PID-5 format: Family^Given^Middle... Identity for consistency
         # is family and given only, so a middle initial appearing in
         # one message and not another still maps to the same fake.
+        # The identity key is joined canonically, NOT with the wire
+        # separator: parsing uses the declared separators, but the
+        # same person written under a different encoding must hash
+        # to the same fake. Only the serialization uses comp_sep.
+        # (With the standard separators the key is unchanged.)
         parts = value.split(rep_sep)[0].split(comp_sep)
-        key = comp_sep.join(p.strip() for p in parts[:2])
+        key = "^".join(p.strip() for p in parts[:2])
         t = self._token("name", key)
         return comp_sep.join([FAKE_FAMILY[t % len(FAKE_FAMILY)],
                               FAKE_GIVEN[(t >> 4) % len(FAKE_GIVEN)]])
@@ -108,7 +113,13 @@ class Anonymizer:
 
     def fake_address(self, value: str, comp_sep: str = "^",
                      rep_sep: str = "~") -> str:
-        t = self._token("addr", value.split(rep_sep)[0])
+        # Identity key canonicalized like fake_name: components
+        # rejoined with the standard separator, so the same address
+        # under a different encoding maps to the same fake. With
+        # the standard separators the key is byte-identical to the
+        # raw first repetition, as before.
+        key = "^".join(value.split(rep_sep)[0].split(comp_sep))
+        t = self._token("addr", key)
         return comp_sep.join([FAKE_STREETS[t % len(FAKE_STREETS)], "",
                               "Anytown", "ST", f"{36000 + t % 999:05d}"])
 

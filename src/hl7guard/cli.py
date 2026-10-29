@@ -21,6 +21,7 @@ from __future__ import annotations
 import argparse
 import os
 import sys
+import tempfile
 
 from . import __version__
 from .anonymize import Anonymizer
@@ -30,6 +31,25 @@ from .validate import BUILTIN_PROFILES, validate_message
 FULL_EDITION = ("This is a free-edition limit. Batch mode, custom "
                 "profiles, and the rest of the full edition are at "
                 "https://hl7guard.variantresearchgroup.com")
+
+
+def _atomic_write(path: str, text: str) -> None:
+    """Write text to path atomically: an exclusively created,
+    unpredictably named temp file in the same directory, renamed
+    into place. A planted file or symlink at a guessed temp name
+    is never opened, and a failure leaves no partial output."""
+    fd, tmp = tempfile.mkstemp(dir=os.path.dirname(path) or ".",
+                               prefix=".hl7guard-", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8", newline="") as fh:
+            fh.write(text)
+        os.replace(tmp, path)
+    except BaseException:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
 
 
 def _load_single(path: str):
@@ -82,8 +102,11 @@ def cmd_anonymize(args) -> int:
     # The default output is the working directory under the input's
     # own name, so running this from the input's folder would
     # otherwise truncate the original capture. Never overwrite the
-    # input, and replace an existing output only when asked.
-    if os.path.abspath(out_path) == os.path.abspath(args.path):
+    # input, and replace an existing output only when asked. The
+    # comparison resolves symlinks: an output directory that is an
+    # alias of the input's directory names the same file, and
+    # replacing the input is refused even with --force.
+    if os.path.realpath(out_path) == os.path.realpath(args.path):
         print(f"error: anonymizing {args.path} would overwrite the "
               "input file itself; pass --out DIR to write somewhere "
               "else", file=sys.stderr)
@@ -93,10 +116,7 @@ def cmd_anonymize(args) -> int:
               "replace it", file=sys.stderr)
         return 2
     os.makedirs(out_dir, exist_ok=True)
-    tmp_path = out_path + ".tmp"
-    with open(tmp_path, "w", encoding="utf-8", newline="") as fh:
-        fh.write(anon.anonymize(msg).to_hl7())
-    os.replace(tmp_path, out_path)
+    _atomic_write(out_path, anon.anonymize(msg).to_hl7())
     print(f"{args.path} -> {out_path}")
     print("1 message(s) anonymized (seeded, consistent)")
     return 0

@@ -109,6 +109,14 @@ def is_plausible_msh(line: str) -> bool:
     return _msh_parts(line) is not None
 
 
+def _is_msh_candidate(line: str) -> bool:
+    """Starts like a header: MSH plus a separator character. A
+    candidate that fails the structural check is a malformed
+    header, never banner text and never an ordinary segment."""
+    return (line.startswith("MSH") and len(line) > 3
+            and not line[3].isalnum() and line[3] not in " \t")
+
+
 def parse_message(raw: str) -> Message:
     text = _clean(raw).replace("\r\n", "\r").replace("\n", "\r")
     msg = Message()
@@ -142,7 +150,11 @@ def split_messages(raw: str) -> list[Message]:
     Only MSH-started chunks count as messages. Lines before the first
     MSH (a banner, a stray note, plain garbage) are not a message, so
     an empty or non-HL7 file yields an empty list and callers can fail
-    closed instead of reporting a clean pass on nothing.
+    closed instead of reporting a clean pass on nothing. A line that
+    starts like a header (MSH plus a separator) but fails the
+    structural check raises ValueError wherever it appears: absorbed
+    into the previous message, a malformed second header would
+    silently ride on the first message's type and profile.
     """
     text = _clean(raw).replace("\r\n", "\r").replace("\n", "\r")
     chunks: list[str] = []
@@ -152,6 +164,9 @@ def split_messages(raw: str) -> list[Message]:
             if current:
                 chunks.append("\r".join(current))
             current = [line]
+        elif _is_msh_candidate(line):
+            raise ValueError(
+                f"malformed MSH header in capture: {line[:40]!r}")
         elif line.strip() and current:
             current.append(line)
     if current:
