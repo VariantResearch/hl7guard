@@ -24,8 +24,29 @@ Exit codes: 0 clean, 1 validation errors found, 2 file or usage
 error. A file with no HL7 message in it exits 2, never a clean
 pass.
 
+Validation checks the segments, fields, and allowed values the
+selected profile declares; it is a profile check, not full HL7
+conformance validation. A message whose type the selected
+profile does not cover is reported as not validated (exit 1),
+never silently passed.
+
+Anonymize covers, on PID: the patient identifiers (including
+legacy PID-2 and alternate PID-4), patient name, alias, and
+mother maiden name, date of birth, address, home and business
+phones, account number, Social Security number, driver license,
+and mother identifier; the visit number on PV1; insured name,
+address, and policy holder ID on IN1; next-of-kin name, address,
+and phones on NK1; guarantor name, address, phones, and SSN on
+GT1. Messages that declare non-standard separators in their MSH
+header are read and rewritten with their own encoding
+characters. Output is written under the input's file name in
+the output folder, never over the input file itself; replacing
+an existing output file takes --force.
+
 Everything runs locally and offline. Python 3.10 or newer, no
-third-party dependencies.
+third-party dependencies. The desktop window needs a working
+Tk installation and a graphical display; the command line
+needs neither.
 
 ## Install
 

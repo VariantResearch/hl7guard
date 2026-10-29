@@ -25,8 +25,9 @@ class Segment:
             self.fields.append("")
         self.fields[idx] = value
 
-    def component(self, num: int, comp: int, default: str = "") -> str:
-        parts = self.get(num).split("^")
+    def component(self, num: int, comp: int, default: str = "",
+                  sep: str = "^") -> str:
+        parts = self.get(num).split(sep)
         idx = comp - 1
         return parts[idx] if 0 <= idx < len(parts) else default
 
@@ -36,6 +37,7 @@ class Message:
     segments: list[Segment] = field(default_factory=list)
     field_sep: str = "|"
     comp_sep: str = "^"
+    rep_sep: str = "~"
 
     @property
     def msg_type(self) -> str:
@@ -80,6 +82,33 @@ def _clean(raw: str) -> str:
     return raw.replace("\ufeff", "").replace("\x0b", "").replace("\x1c", "")
 
 
+def _msh_parts(line: str):
+    """Split a candidate MSH line into (field_sep, parts-after-MSH),
+    or return None when the line cannot be a real MSH header.
+
+    A real header has a non-alphanumeric separator as its fourth
+    character, encoding characters in MSH-2, and fields running at
+    least through MSH-9 with a non-empty message code. A line like
+    "MSHgarbage" fails every part of that, which is the point: an
+    MSH prefix alone must never promote garbage into a message.
+    """
+    if not line.startswith("MSH") or len(line) <= 4:
+        return None
+    sep = line[3]
+    if sep.isalnum() or sep in " \t":
+        return None
+    parts = line[4:].split(sep)
+    if len(parts) < 8 or not parts[0]:
+        return None
+    if not parts[7].split(parts[0][0])[0].strip():
+        return None
+    return sep, parts
+
+
+def is_plausible_msh(line: str) -> bool:
+    return _msh_parts(line) is not None
+
+
 def parse_message(raw: str) -> Message:
     text = _clean(raw).replace("\r\n", "\r").replace("\n", "\r")
     msg = Message()
@@ -87,12 +116,18 @@ def parse_message(raw: str) -> Message:
         line = line.strip()
         if not line:
             continue
-        name = line[:3]
-        if name == "MSH" and len(line) > 4:
-            msg.field_sep = line[3]
-            enc = line[4:8]
+        if not msg.segments and line.startswith("MSH"):
+            parsed = _msh_parts(line)
+            if parsed is None:
+                raise ValueError(
+                    "malformed MSH header (no separator, encoding "
+                    f"characters, or message type): {line[:40]!r}")
+            msg.field_sep, parts = parsed
+            enc = parts[0]
             msg.comp_sep = enc[0] if enc else "^"
-            fields = [msg.field_sep] + line[4:].split(msg.field_sep)
+            msg.rep_sep = enc[1] if len(enc) > 1 else "~"
+            fields = [msg.field_sep] + parts
+            name = "MSH"
         else:
             parts = line.split(msg.field_sep)
             name = parts[0]
@@ -113,7 +148,7 @@ def split_messages(raw: str) -> list[Message]:
     chunks: list[str] = []
     current: list[str] = []
     for line in text.split("\r"):
-        if line.startswith("MSH"):
+        if is_plausible_msh(line):
             if current:
                 chunks.append("\r".join(current))
             current = [line]

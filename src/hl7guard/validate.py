@@ -10,6 +10,14 @@ A profile is JSON so teams can keep it in their own repo and run it in CI:
   "*": { ... fallback for any message type ... }
 }
 Findings are structured so reports can be JSON or plain text.
+
+Profile sections are matched on the message code and trigger
+event (the first two MSH-9 components), so a message whose MSH-9
+also carries a message structure (ADT^A01^ADT_A01) still matches
+its ADT^A01 section. A supplied profile with no section for a
+message's type, and no "*" fallback, is an error finding: the
+message was not validated, and saying so beats a clean pass that
+never checked anything.
 """
 from __future__ import annotations
 
@@ -42,23 +50,42 @@ def _parse_path(path: str) -> tuple[str, int, int | None]:
     return seg.strip(), int(num), (int(comp) if comp else None)
 
 
+def _type_key(msg: Message) -> str:
+    """The profile lookup key for a message: code and trigger
+    event from MSH-9, joined the way profile files write them,
+    whatever component separator the message itself uses."""
+    parts = [p.strip() for p in msg.msg_type.split(msg.comp_sep)]
+    return "^".join(p for p in parts[:2] if p)
+
+
 def validate_message(msg: Message, profile: dict) -> list[Finding]:
     findings: list[Finding] = []
-    spec = profile.get(msg.msg_type) or profile.get("*") or {}
+    if not profile:
+        return findings
+    key = _type_key(msg)
+    if key in profile:
+        spec = profile[key]
+    elif "*" in profile:
+        spec = profile["*"]
+    else:
+        findings.append(Finding(
+            "error",
+            f"no profile section for message type {key or msg.msg_type!r}; "
+            "the message was not validated against this profile", "MSH-9"))
+        return findings
     for seg_name in spec.get("required_segments", []):
         if msg.segment(seg_name) is None:
             findings.append(Finding("error", f"missing required segment {seg_name}", seg_name))
     for path, label in spec.get("required_fields", {}).items():
         seg_name, num, _ = _parse_path(path)
-        seg = msg.segment(seg_name)
-        if seg is None:
-            continue
-        if not seg.get(num).strip():
-            findings.append(Finding("error", f"empty required field ({label})", path))
+        for i, seg in enumerate(msg.segments_named(seg_name), 1):
+            if not seg.get(num).strip():
+                loc = path if i == 1 else f"{path} (occurrence {i})"
+                findings.append(Finding("error", f"empty required field ({label})", loc))
     for path, allowed in spec.get("allowed_values", {}).items():
         seg_name, num, comp = _parse_path(path)
         for seg in msg.segments_named(seg_name):
-            value = seg.component(num, comp) if comp else seg.get(num)
+            value = seg.component(num, comp, sep=msg.comp_sep) if comp else seg.get(num)
             value = value.strip()
             if value and value not in allowed:
                 findings.append(

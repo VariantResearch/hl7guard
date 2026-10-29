@@ -78,10 +78,25 @@ def cmd_anonymize(args) -> int:
         return err
     anon = Anonymizer(seed=args.seed)
     out_dir = args.out or "."
-    os.makedirs(out_dir, exist_ok=True)
     out_path = os.path.join(out_dir, os.path.basename(args.path))
-    with open(out_path, "w", encoding="utf-8", newline="") as fh:
+    # The default output is the working directory under the input's
+    # own name, so running this from the input's folder would
+    # otherwise truncate the original capture. Never overwrite the
+    # input, and replace an existing output only when asked.
+    if os.path.abspath(out_path) == os.path.abspath(args.path):
+        print(f"error: anonymizing {args.path} would overwrite the "
+              "input file itself; pass --out DIR to write somewhere "
+              "else", file=sys.stderr)
+        return 2
+    if os.path.exists(out_path) and not getattr(args, "force", False):
+        print(f"error: {out_path} already exists; pass --force to "
+              "replace it", file=sys.stderr)
+        return 2
+    os.makedirs(out_dir, exist_ok=True)
+    tmp_path = out_path + ".tmp"
+    with open(tmp_path, "w", encoding="utf-8", newline="") as fh:
         fh.write(anon.anonymize(msg).to_hl7())
+    os.replace(tmp_path, out_path)
     print(f"{args.path} -> {out_path}")
     print("1 message(s) anonymized (seeded, consistent)")
     return 0
@@ -111,10 +126,21 @@ def main(argv=None) -> int:
                         "patient to the same fake patient")
     a.add_argument("--out", default=None,
                    help="output directory (default: current)")
+    a.add_argument("--force", action="store_true",
+                   help="replace an output file that already exists "
+                        "(an output that is the input file itself is "
+                        "always refused)")
     a.set_defaults(func=cmd_anonymize)
 
     args = parser.parse_args(argv)
-    return args.func(args)
+    try:
+        return args.func(args)
+    except (OSError, ValueError) as exc:
+        # File and usage errors are exit 2 under the contract, with
+        # a concise message, never a traceback and never exit 1
+        # (which means validation findings).
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
 
 
 if __name__ == "__main__":
