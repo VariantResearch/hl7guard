@@ -1,15 +1,10 @@
-"""Optional viewer / editor add-on.
+"""Viewer / editor, included in the free edition.
 
-HL7Guard is a testing tool, not a message viewer; this add-on is
-the exception, and it is optional: it ships only in builds made
-with the viewer included (scripts/build_release.py --viewer) and
-the desktop GUI shows its button only when this module is
-installed. It is meant for verification and minor edits: open a
-capture, read each message as labelled segments and fields (the
-categories below), fix a value, and save.
+Open a file and read each message as labelled segments and
+fields (the categories below), make a minor edit, and save it.
 
 The model half of this module (describe_message, set_field) is
-headless and fully tested; the Tk window is a thin shell over it.
+headless and tested; the Tk window is a thin shell over it.
 """
 from __future__ import annotations
 

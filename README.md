@@ -6,9 +6,10 @@ in CI, with exit codes a pipeline can gate on.
 
 ## What the free edition does
 
-- `hl7guard validate <file>` validates the one HL7v2 message in
-  a file: message structure, plus the built-in ADT, ORM, and ORU
-  profiles with `--builtin`.
+- `hl7guard validate <file>` reads the one HL7v2 message in a
+  file, and with `--builtin` checks it against the built-in ADT,
+  ORM, and ORU profiles (required segments and fields). A file
+  with no HL7 message in it is an error, never a pass.
 - `hl7guard anonymize <file>` de-identifies the one message in
   a file. Names, patient IDs, dates of birth, addresses, phone
   numbers, and the other covered identifier fields are replaced.
